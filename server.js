@@ -72,7 +72,12 @@ app.get('/users', async(req, res, next)=> {
 
 app.get('/messages', async(req, res, next)=> {
   try {
-    const messages = await Message.findAll();
+    const messages = await Message.findAll({
+      include: [
+        { model: User, as: 'to'},
+        { model: User, as: 'from'},
+      ]
+    });
     res.send(`
       <html>
         <head>
@@ -90,7 +95,7 @@ app.get('/messages', async(req, res, next)=> {
               messages.map( message => {
                 return `
                   <li>
-                    ${ message.subject }
+                    ${ message.subject } from ${ message.from.firstName } to ${ message.to.firstName }
                   </li>
                 `;
               }).join('')
