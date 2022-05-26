@@ -43,6 +43,8 @@ const Message = conn.define('message', {
 
 Message.belongsTo(User, { as: 'from'});
 Message.belongsTo(User, { as: 'to' });
+User.hasMany(Message, { as: 'sent', foreignKey: 'fromId'});
+User.hasMany(Message, { as: 'received', foreignKey: 'toId'});
 
 const syncAndSeed = async()=> {
   await conn.sync({ force: true }); 

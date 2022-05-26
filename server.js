@@ -37,7 +37,12 @@ app.get('/', async(req, res, next)=> {
 
 app.get('/users', async(req, res, next)=> {
   try {
-    const users = await User.findAll();
+    const users = await User.findAll({
+      include: [
+        { model: Message, as: 'sent'},
+        { model: Message, as: 'received'},
+      ]
+    });
     res.send(`
       <html>
         <head>
@@ -56,6 +61,11 @@ app.get('/users', async(req, res, next)=> {
                 return `
                   <li>
                     ${ user.fullName } (${ user.userLevel })
+                    <div>
+                      Sent ${ user.sent.length } messages
+                      <br />
+                      Received ${ user.received.length } messages
+                    </div>
                   </li>
                 `;
               }).join('')
