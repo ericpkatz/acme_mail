@@ -13,3 +13,15 @@ nav a {
 nav a.selected {
   border: solid 1px dodgerBlue;
 }
+
+form {
+  margin: 1rem;
+  border: solid 1px dodgerBlue;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+}
+
+form > * {
+  margin: 0.5rem;
+}

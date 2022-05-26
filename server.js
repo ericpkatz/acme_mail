@@ -3,6 +3,8 @@ const { conn, User, Message, syncAndSeed } = db;
 const express = require('express');
 const app = express();
 
+app.use(express.urlencoded({ extended: false }));
+
 app.use('/assets', express.static('assets'));
 
 app.get('/', async(req, res, next)=> {
@@ -35,6 +37,16 @@ app.get('/', async(req, res, next)=> {
   }
 });
 
+
+app.post('/messages', async(req, res, next)=> {
+  try {
+    await Message.create(req.body);
+    res.redirect('/messages');
+  }
+  catch(ex){
+    next(ex);
+  }
+});
 app.get('/users', async(req, res, next)=> {
   try {
     const users = await User.findAll({
@@ -88,6 +100,7 @@ app.get('/messages', async(req, res, next)=> {
         { model: User, as: 'from'},
       ]
     });
+    const users = await User.findAll();
     res.send(`
       <html>
         <head>
@@ -100,6 +113,30 @@ app.get('/messages', async(req, res, next)=> {
             <a href='/users'>Users</a>
             <a href='/messages' class='selected'>Messages</a>
           </nav>
+          <form method='POST'>
+            <select name='fromId'>
+              <option>-- from --</option>
+              ${
+                users.map( user => {
+                  return `
+                    <option value='${ user.id }'>${ user.fullName }</option>
+                  `;
+                }).join('')
+              }
+            </select>
+            <select name='toId'>
+              <option>-- to -- </option>
+              ${
+                users.map( user => {
+                  return `
+                    <option value='${ user.id }'>${ user.fullName }</option>
+                  `;
+                }).join('')
+              }
+            </select>
+            <input name='subject' placeHolder='enter subject' />
+            <button>Create</button>
+          </form>
           <ul>
             ${
               messages.map( message => {
@@ -118,6 +155,21 @@ app.get('/messages', async(req, res, next)=> {
   catch(ex){
     next(ex);
   }
+});
+
+app.use((err, req, res, next)=> {
+  console.log(err);
+  res.status(500).send(`
+    <html>
+      <head>
+        <title>Error</title>
+      </head>
+      <body>
+      There was an error ${ err }
+      <a href='/'> Try Again</a>
+      </body>
+    </html>
+  `);
 });
 
 const bootstrap = async()=> {
