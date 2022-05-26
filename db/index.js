@@ -31,6 +31,18 @@ const User = conn.define('user', {
 
 });
 
+User.getPowerUsers = function(){
+  return User.findAll({
+    where: {
+      userLevel: 'POWER'
+    },
+    include: [
+      { model: Message, as: 'sent'},
+      { model: Message, as: 'received'},
+    ]
+  });
+}
+
 const Message = conn.define('message', {
   subject: {
     type: STRING,

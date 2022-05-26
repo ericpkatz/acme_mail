@@ -9,9 +9,10 @@ app.use('/assets', express.static('assets'));
 
 app.get('/', async(req, res, next)=> {
   try {
-    const [ users, messages ] = await Promise.all([
+    const [ users, messages, powerUsers ] = await Promise.all([
       User.findAll(),
-      Message.findAll()
+      Message.findAll(),
+      User.getPowerUsers()
     ]);
     res.send(`
       <html>
@@ -27,6 +28,8 @@ app.get('/', async(req, res, next)=> {
           </nav>
           <p>
             We have ${ users.length } users and we have ${ messages.length } messages!
+            <br />
+            We have ${ powerUsers.length } power users!
           </p>
         </body>
       </html>
@@ -42,6 +45,47 @@ app.post('/messages', async(req, res, next)=> {
   try {
     await Message.create(req.body);
     res.redirect('/messages');
+  }
+  catch(ex){
+    next(ex);
+  }
+});
+
+app.get('/users/power', async(req, res, next)=> {
+  try {
+    const users = await User.getPowerUsers();
+    res.send(`
+      <html>
+        <head>
+          <title>Acme Mail</title>
+          <link rel='stylesheet' href='/assets/my_styles.css' />
+        </head>
+        <body>
+          <nav>
+            <a href='/'>Home</a>
+            <a href='/users' class='selected'>Users</a>
+            <a href='/messages'>Messages</a>
+          </nav>
+          <a href='/users'>Show All Users</a>
+          <ul>
+            ${
+              users.map( user => {
+                return `
+                  <li>
+                    ${ user.fullName } (${ user.userLevel })
+                    <div>
+                      Sent ${ user.sent.length } messages
+                      <br />
+                      Received ${ user.received.length } messages
+                    </div>
+                  </li>
+                `;
+              }).join('')
+            }
+          </ul>
+        </body>
+      </html>
+    `);
   }
   catch(ex){
     next(ex);
@@ -67,6 +111,7 @@ app.get('/users', async(req, res, next)=> {
             <a href='/users' class='selected'>Users</a>
             <a href='/messages'>Messages</a>
           </nav>
+          <a href='/users/power'>Filter Power Users</a>
           <ul>
             ${
               users.map( user => {
